@@ -63,7 +63,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-
+    
         // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBaFwA2kJM8CvlzBBkeCkq1CdlYclcxNZ0",
@@ -73,45 +73,45 @@
             messagingSenderId: "861290828360",
             appId: "1:861290828360:web:749ffe7565bd95db273e7d"
         };
-
+    
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
+    
         let lastSubmissionTime = 0;
-
+    
         // Authentification utilisateur
         auth.onAuthStateChanged((user) => {
             if (user) {
                 const userEmail = user.email;
-
+    
                 if (!userEmail.endsWith('@lyc-buisson.com')) {
                     alert('Vous devez utiliser une adresse email valide @lyc-buisson.com');
                     auth.signOut();
                     window.location.href = 'connexion.html';
                     return;
                 }
-
+    
                 const [firstName, lastName] = userEmail.split('@')[0].split('.');
                 const formattedName = `${firstName.charAt(0).toUpperCase() + firstName.slice(1)}.${lastName.charAt(0).toUpperCase()}`;
-
+    
                 document.getElementById('nom-client').textContent = formattedName;
                 document.getElementById('student-name').value = formattedName;
                 document.getElementById('client-container').classList.remove('hidden');
-
+    
                 // Formulaire d'envoi de ticket
                 const ticketForm = document.getElementById('ticket-form');
                 ticketForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-
+    
                     const currentTime = Date.now();
                     if (currentTime - lastSubmissionTime < 30000) {
                         document.getElementById('anti-spam-message').classList.remove('hidden');
                         return;
                     }
-
+    
                     document.getElementById('anti-spam-message').classList.add('hidden');
-
+    
                     const prof = document.getElementById('professeur').value;
                     try {
                         await addDoc(collection(db, 'demandes'), {
@@ -119,42 +119,41 @@
                             professeur: prof,
                             timestamp: serverTimestamp()
                         });
-                        alert('Demande envoyée avec succès !');
                         lastSubmissionTime = currentTime;
                     } catch (err) {
                         console.error("Erreur lors de l'envoi de la demande :", err);
                     }
                 });
-
+    
                 // Affichage des demandes
                 const demandeTableBody = document.getElementById('demande-table').querySelector('tbody');
                 const demandesRef = collection(db, 'demandes');
-                const demandesQuery = query(demandesRef, orderBy("timestamp", "desc")); // Tri inversé (le plus récent en premier)
-
+                const demandesQuery = query(demandesRef, orderBy("timestamp", "asc")); // Tri par timestamp croissant
+    
                 onSnapshot(demandesQuery, (snapshot) => {
                     demandeTableBody.innerHTML = '';
                     let id = 1;
                     snapshot.forEach((doc) => {
                         const data = doc.data();
                         const row = document.createElement('tr');
-
+    
                         const idCell = document.createElement('td');
                         idCell.textContent = id++;
                         row.appendChild(idCell);
-
+    
                         const nameCell = document.createElement('td');
                         nameCell.textContent = data.nom;
                         row.appendChild(nameCell);
-
+    
                         const profCell = document.createElement('td');
                         profCell.textContent = data.professeur;
                         row.appendChild(profCell);
-
+    
                         const timeCell = document.createElement('td');
                         const requestTime = data.timestamp ? new Date(data.timestamp.toMillis()) : new Date();
                         timeCell.textContent = requestTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
                         row.appendChild(timeCell);
-
+    
                         demandeTableBody.appendChild(row);
                     });
                 });
@@ -162,7 +161,7 @@
                 window.location.href = 'connexion.html';
             }
         });
-
+    
         // Déconnexion utilisateur
         const logoutButton = document.getElementById('logout-client');
         logoutButton.addEventListener('click', () => {
@@ -171,5 +170,3 @@
             });
         });
     </script>
-</body>
-</html>
