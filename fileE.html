@@ -120,7 +120,6 @@
                             timestamp: serverTimestamp()
                         });
                         alert('Demande envoyée avec succès !');
-                        ticketForm.reset();
                         lastSubmissionTime = currentTime;
                     } catch (err) {
                         console.error("Erreur lors de l'envoi de la demande :", err);
