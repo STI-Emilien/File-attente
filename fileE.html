@@ -136,10 +136,10 @@
 
     
                 onSnapshot(demandesQuery, (snapshot) => {
-    demandeTableBody.innerHTML = '';  // Réinitialiser la table
+    demandeTableBody.innerHTML = ''; // Réinitialiser le tableau à chaque mise à jour
     let id = 1;
-    snapshot.forEach((doc) => {
-        const data = doc.data(); // Assurez-vous que 'data' est initialisé ici
+    snapshot.forEach((docSnapshot) => {  // Modifier doc en docSnapshot pour éviter toute confusion
+        const data = docSnapshot.data(); // Récupère les données du document
         const row = document.createElement('tr');
 
         const idCell = document.createElement('td');
@@ -160,14 +160,14 @@
         row.appendChild(timeCell);
 
         const actionCell = document.createElement('td');
-        if (data.nom === currentUser) {
+        if (data.nom === currentUser) {  // Vérification si l'élève est le bon utilisateur
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Supprimer';
             deleteButton.addEventListener('click', async () => {
                 try {
-                    const docRef = doc(db, 'demandes', doc.id); // Référence du document à supprimer
-                    await deleteDoc(docRef); // Supprimer le document
-                    console.log("Demande supprimée :", doc.id); // Log pour vérification
+                    const docRef = doc(db, 'demandes', docSnapshot.id); // Utilisation de docSnapshot.id pour obtenir la référence du document
+                    await deleteDoc(docRef);  // Suppression du document
+                    console.log("Demande supprimée :", docSnapshot.id); // Vérification dans la console
                 } catch (err) {
                     console.error("Erreur lors de la suppression :", err);
                     alert("Erreur lors de la suppression de la demande.");
@@ -180,6 +180,7 @@
         demandeTableBody.appendChild(row);
     });
 });
+
 
             } else {
                 window.location.href = 'connexion.html';
