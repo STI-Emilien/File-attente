@@ -162,16 +162,19 @@
                         const actionCell = document.createElement('td');
                         if (data.nom === currentUser) {
                             const deleteButton = document.createElement('button');
-                            deleteButton.textContent = 'Supprimer';
-                            deleteButton.addEventListener('click', async () => {
-                                try {
-                                    await deleteDoc(doc(db, 'demandes', doc.id));
-                                    console.log("Demande supprimée :", doc.id);
-                                } catch (err) {
-                                    console.error("Erreur lors de la suppression :", err);
-                                }
-                            });
-                            actionCell.appendChild(deleteButton);
+deleteButton.textContent = 'Supprimer';
+deleteButton.addEventListener('click', async () => {
+    try {
+        const docRef = doc(db, 'demandes', doc.id); // Référence exacte du document
+        await deleteDoc(docRef); // Suppression du document
+        console.log("Demande supprimée :", doc.id);
+    } catch (err) {
+        console.error("Erreur lors de la suppression :", err);
+        alert("Une erreur s'est produite lors de la suppression.");
+    }
+});
+actionCell.appendChild(deleteButton);
+
                         }
                         row.appendChild(actionCell);
     
