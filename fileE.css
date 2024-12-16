@@ -1,5 +1,6 @@
 /* fileE.css */
 
+/* Style de base */
 #client-container {
     display: flex;
     flex-direction: column;
@@ -15,6 +16,7 @@
 }
 
 #demande-table {
+    max-width: 500px;
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
@@ -30,8 +32,6 @@
     background-color: #f4f4f4;
     font-weight: bold;
 }
-
-
 
 #welcome-container {
     text-align: center;
@@ -77,4 +77,55 @@
 
 #logout-client:hover {
     background-color: #e53935;
+}
+
+/* Media Queries pour rendre le site responsive */
+
+/* Si l'écran fait moins de 1200px de large */
+@media (max-width: 1200px) {
+    .container {
+        flex-direction: column;
+    }
+    .form-container, .demande-container {
+        margin-bottom: 20px;
+    }
+    #demande-table {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+/* Si l'écran fait moins de 768px de large (tablettes et mobiles en paysage) */
+@media (max-width: 768px) {
+    #client-container {
+        padding: 10px;
+        width: 90%;
+    }
+    .form-container, .demande-container {
+        padding: 15px;
+    }
+    #demande-table {
+        font-size: 14px; /* Taille de la police plus petite */
+    }
+    #logout-client {
+        margin-top: 15px;
+    }
+}
+
+/* Si l'écran fait moins de 480px de large (mobiles en portrait) */
+@media (max-width: 480px) {
+    #client-container {
+        width: 100%;
+        padding: 5px;
+    }
+    .form-container, .demande-container {
+        padding: 10px;
+    }
+    #demande-table {
+        font-size: 12px; /* Taille de la police encore plus petite */
+    }
+    #logout-client {
+        margin-top: 10px;
+        font-size: 14px;
+    }
 }
