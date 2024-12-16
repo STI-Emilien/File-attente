@@ -1,5 +1,3 @@
-/* fileE.css */
-
 /* Style principal du conteneur client */
 #client-container {
     display: flex;
@@ -45,6 +43,17 @@
 
 #demande-table td {
     background-color: #fff;
+}
+
+/* Ajout du fond noir et blanc alterné pour chaque ligne */
+#demande-table tr:nth-child(odd) td {
+    background-color: #000; /* Fond noir pour les lignes impaires */
+    color: white; /* Texte blanc pour les lignes impaires */
+}
+
+#demande-table tr:nth-child(even) td {
+    background-color: #fff; /* Fond blanc pour les lignes paires */
+    color: black; /* Texte noir pour les lignes paires */
 }
 
 /* Bouton "Supprimer" */
