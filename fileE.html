@@ -27,11 +27,11 @@
                     <input type="text" id="student-name" name="nom" disabled>
                     <label for="professeur">Choisir un professeur :</label>
                     <select id="professeur" name="prof" required>
-                        <option value="Mr Fouques">Mr Fouques</option>
+                        <option value="Mr Fouques">Mr Fouque</option>
                         <option value="Mr Metay">Mr Metay</option>
                         <option value="Mr Fosset">Mr Fosset</option>
                         <option value="Mr Flandin">Mr Flandin</option>
-                        <option value="N'importe qui">N'importe qu</option>
+                        <option value="N'importe qui">N'importe qui</option>
                     </select>
                     <button type="submit" id="submit">Envoyer la demande</button>
                 </form>
@@ -132,7 +132,8 @@
                 // Affichage des demandes
                 const demandeTableBody = document.getElementById('demande-table').querySelector('tbody');
                 const demandesRef = collection(db, 'demandes');
-                const demandesQuery = query(demandesRef, orderBy("timestamp", "asc"));
+                const demandesQuery = query(demandesRef, orderBy("timestamp", "desc"));
+
     
                 onSnapshot(demandesQuery, (snapshot) => {
                     demandeTableBody.innerHTML = '';
