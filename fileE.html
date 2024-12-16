@@ -1,220 +1,191 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File d'attente STI2D</title>
-    <link rel="stylesheet" href="base.css">
-    <link rel="stylesheet" href="fileE.css">
-    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js"></script>
-    <style>
-        body {
-            background-image: url(Buisson.jpg);
-        }
-    </style>
-</head>
-<body>
-    <div id="client-container" class="hidden">
-        <div id="welcome-container">
-            <h1>Bienvenue, <span id="nom-client"></span></h1>
-        </div>
-        <div class="container">
-            <div class="form-container">
-                <form method="post" id="ticket-form">
-                    <label for="professeur">Votre nom :</label>
-                    <input type="text" id="student-name" name="nom" disabled>
-                    <label for="professeur">Choisir un professeur :</label>
-                    <select id="professeur" name="prof" required>
-                        <option value="Mr Fouques">Mr Fouques</option>
-                        <option value="Mr Metay">Mr Metay</option>
-                        <option value="Mr Fosset">Mr Fosset</option>
-                        <option value="Mr Flandin">Mr Flandin</option>
-                        <option value="N'importe qui">N'importe qui</option>
-                    </select>
-                    <button type="submit" id="submit">Envoyer la demande</button>
-                </form>
-                <div id="anti-spam-message" class="hidden" style="color: red; margin-top: 10px;">
-                    Vous devez attendre 30 secondes avant de soumettre une nouvelle demande.
-                </div>
-            </div>
-            
-            <div class="demande-container">
-                <h2>Demandes de tickets</h2>
-                <table id="demande-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nom de l'élève</th>
-                            <th>Professeur</th>
-                            <th>Heure</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Les demandes sont ajoutées ici -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <button id="logout-client">Se déconnecter</button>
-    </div>
+/* fileE.css */
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-    
-        // Configuration Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyBaFwA2kJM8CvlzBBkeCkq1CdlYclcxNZ0",
-            authDomain: "sti2d-file-attente.firebaseapp.com",
-            projectId: "sti2d-file-attente",
-            storageBucket: "sti2d-file-attente.firebasestorage.app",
-            messagingSenderId: "861290828360",
-            appId: "1:861290828360:web:749ffe7565bd95db273e7d"
-        };
-    
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-    
-        let lastSubmissionTime = 0;
-        let currentUser = null;
-
-        // Authentification utilisateur
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                const userEmail = user.email;
-    
-                if (!userEmail.endsWith('@lyc-buisson.com')) {
-                    alert('Vous devez utiliser une adresse email valide @lyc-buisson.com');
-                    auth.signOut();
-                    window.location.href = 'connexion.html';
-                    return;
-                }
-    
-                const [firstName, lastName] = userEmail.split('@')[0].split('.');
-                const formattedName = `${firstName.charAt(0).toUpperCase() + firstName.slice(1)}.${lastName.charAt(0).toUpperCase()}`;
-                currentUser = formattedName;
-    
-                document.getElementById('nom-client').textContent = formattedName;
-                document.getElementById('student-name').value = formattedName;
-                document.getElementById('client-container').classList.remove('hidden');
-    
-                // Formulaire d'envoi de ticket
-                const ticketForm = document.getElementById('ticket-form');
-                ticketForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-    
-                    const currentTime = Date.now();
-                    if (currentTime - lastSubmissionTime < 30000) {
-                        document.getElementById('anti-spam-message').classList.remove('hidden');
-                        return;
-                    }
-    
-                    document.getElementById('anti-spam-message').classList.add('hidden');
-    
-                    const prof = document.getElementById('professeur').value;
-                    try {
-                        await addDoc(collection(db, 'demandes'), {
-                            nom: formattedName,
-                            professeur: prof,
-                            timestamp: serverTimestamp()
-                        });
-                        lastSubmissionTime = currentTime;
-                    } catch (err) {
-                        console.error("Erreur lors de l'envoi de la demande :", err);
-                    }
-                });
-    
-                // Affichage des demandes
-                const demandeTableBody = document.getElementById('demande-table').querySelector('tbody');
-                const demandesRef = collection(db, 'demandes');
-                const demandesQuery = query(demandesRef, orderBy("timestamp", "desc"));
-
-    
-                onSnapshot(demandesQuery, (snapshot) => {
-    demandeTableBody.innerHTML = ''; // Réinitialiser le tableau à chaque mise à jour
-    let id = 1;
-    snapshot.forEach((docSnapshot) => {  // Modifier doc en docSnapshot pour éviter toute confusion
-        const data = docSnapshot.data(); // Récupère les données du document
-        const row = document.createElement('tr');
-
-        const idCell = document.createElement('td');
-        idCell.textContent = id++;
-        row.appendChild(idCell);
-
-        const nameCell = document.createElement('td');
-        nameCell.textContent = data.nom;
-        row.appendChild(nameCell);
-
-        const profCell = document.createElement('td');
-        profCell.textContent = data.professeur;
-        row.appendChild(profCell);
-
-        const timeCell = document.createElement('td');
-        const requestTime = data.timestamp ? new Date(data.timestamp.toMillis()) : new Date();
-        timeCell.textContent = requestTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        row.appendChild(timeCell);
-
-        const actionCell = document.createElement('td');
-        if (data.nom === currentUser) {  // Vérification si l'élève est le bon utilisateur
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Supprimer';
-            deleteButton.addEventListener('click', async () => {
-                try {
-                    const docRef = doc(db, 'demandes', docSnapshot.id); // Utilisation de docSnapshot.id pour obtenir la référence du document
-                    await deleteDoc(docRef);  // Suppression du document
-                    console.log("Demande supprimée :", docSnapshot.id); // Vérification dans la console
-                } catch (err) {
-                    console.error("Erreur lors de la suppression :", err);
-                    alert("Erreur lors de la suppression de la demande.");
-                }
-            });
-            actionCell.appendChild(deleteButton);
-        }
-        row.appendChild(actionCell);
-
-        demandeTableBody.appendChild(row);
-    });
-});
-
-
-            } else {
-                window.location.href = 'connexion.html';
-            }
-        });
-    
-        // Déconnexion utilisateur
-        const logoutButton = document.getElementById('logout-client');
-        logoutButton.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                window.location.href = 'connexion.html';
-            });
-        });
-
-        const actionCell = document.createElement('td');
-if (data.nom === currentUser) {  // Vérifier si c'est la demande de l'utilisateur
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Supprimer';
-    deleteButton.addEventListener('click', async () => {
-        try {
-            const docRef = doc(db, 'demandes', doc.id); // Référence du document à supprimer
-            await deleteDoc(docRef); // Supprimer le document
-            console.log("Demande supprimée :", doc.id); // Log pour vérification
-        } catch (err) {
-            console.error("Erreur lors de la suppression :", err);
-            alert("Erreur lors de la suppression de la demande.");
-        }
-    });
-    actionCell.appendChild(deleteButton);
+/* Modale de base */
+#client-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 2px solid black;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 1000px; /* Largeur maximale pour les grands écrans */
+    margin: auto;
+    box-sizing: border-box;
 }
-row.appendChild(actionCell);
 
+/* Tableau des demandes */
+#demande-table {
+    width: 100%; /* Permet de remplir toute la largeur du conteneur */
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: auto; /* Permet aux colonnes de s'ajuster automatiquement */
+    word-wrap: break-word; /* Empêche le texte de déborder */
+}
 
+/* Style des cellules du tableau */
+#demande-table th, #demande-table td {
+    border: 1px solid #979494;
+    padding: 12px;
+    text-align: center;
+    word-wrap: break-word; /* Pour que le texte long ne déborde pas */
+    overflow: hidden; /* Cache l'excédent de texte */
+    text-overflow: ellipsis; /* Ajoute "..." si le texte est trop long */
+}
 
-    </script>
-</body>
-</html>
+#demande-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+/* Bouton "Supprimer" dans la cellule */
+#demande-table td .delete-btn {
+    margin: 0;
+    padding: 5px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+/* S'assurer que le bouton ne dépasse pas et est centré dans la cellule */
+#demande-table td .delete-btn:hover {
+    background-color: #45a049;
+}
+
+/* Container principal */
+#welcome-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap; /* Pour gérer les petits écrans */
+}
+
+.form-container, .demande-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    flex: 1;
+    margin: 0 10px;
+    max-height: 350px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+#demande-liste {
+    list-style-type: none;
+    padding: 0;
+}
+
+#demande-liste li {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#logout-client {
+    margin-top: 20px;
+    background-color: #f44336;
+    padding: 10px;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#logout-client:hover {
+    background-color: #e53935;
+}
+
+/* Media Queries pour rendre le site responsive */
+
+/* Pour les écrans entre 768px et 1200px */
+@media (max-width: 1200px) {
+    #client-container {
+        width: 95%; /* Réduit la largeur à 95% pour éviter la surcharge sur les écrans moyens */
+    }
+
+    .container {
+        flex-direction: column; /* Passe en mode colonne sur les petits écrans */
+    }
+
+    .form-container, .demande-container {
+        margin-bottom: 20px;
+    }
+
+    #demande-table {
+        width: 100%;
+    }
+}
+
+/* Adaptation pour les petits écrans (max-width: 768px) */
+@media (max-width: 768px) {
+    #client-container {
+        width: 90%;
+        padding: 10px;
+    }
+
+    .form-container, .demande-container {
+        padding: 15px;
+    }
+
+    #demande-table {
+        font-size: 14px; /* Police plus petite */
+    }
+
+    #logout-client {
+        margin-top: 15px;
+    }
+}
+
+/* Pour les très petits écrans (max-width: 480px) */
+@media (max-width: 480px) {
+    #client-container {
+        width: 100%;
+        padding: 5px;
+    }
+
+    .form-container, .demande-container {
+        padding: 10px;
+    }
+
+    #demande-table {
+        font-size: 12px; /* Taille de police encore plus petite */
+    }
+
+    #logout-client {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+}
+
+/* Pour les grands écrans (min-width: 1200px) */
+@media (min-width: 1200px) {
+    #client-container {
+        width: 70%; /* Modale plus large sur les grands écrans */
+        margin: 0 auto;
+    }
+
+    .container {
+        flex-direction: row; /* Disposition en ligne sur les grands écrans */
+        max-width: 1200px;
+    }
+
+    .form-container, .demande-container {
+        margin: 0 20px;
+    }
+}
