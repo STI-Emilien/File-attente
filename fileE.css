@@ -11,12 +11,14 @@
     border: 2px solid black;
     border-radius: 10px;
     width: auto;
-    max-width: 1000px; /* Changer la largeur maximale pour les écrans plus larges */
+    max-width: 1000px; /* Largeur maximale pour les écrans larges */
     margin: auto;
+    box-sizing: border-box; /* Pour que le padding soit inclus dans la largeur totale */
 }
 
+/* Modification de la table des demandes */
 #demande-table {
-    width: 100%; /* Largeur complète pour éviter un défilement horizontal */
+    width: 100%; /* Largeur complète pour éviter le défilement horizontal */
     border-collapse: collapse;
     margin-top: 20px;
     table-layout: fixed; /* Assure que toutes les colonnes aient une largeur égale */
@@ -91,9 +93,14 @@
 
 /* Si l'écran fait moins de 1200px de large */
 @media (max-width: 1200px) {
-    .container {
-        flex-direction: column;
+    #client-container {
+        width: 95%; /* Réduit la largeur du container à 95% de l'écran sur les écrans moins larges */
     }
+
+    .container {
+        flex-direction: column; /* Passe en colonne sur les petits écrans */
+    }
+    
     .form-container, .demande-container {
         margin-bottom: 20px;
     }
@@ -138,16 +145,18 @@
     }
 }
 
-/* Pour éviter le défilement horizontal, ajuster les conteneurs */
+/* Pour les grands écrans (plus de 1200px) */
 @media (min-width: 1200px) {
-    #demande-table {
-        max-width: 100%; /* S'assure que la table occupe toute la largeur sans dépasser */
-        width: 100%;
+    #client-container {
+        width: 70%; /* La largeur de la modale est réduite à 70% de l'écran pour éviter une modale trop large */
+        margin: 0 auto; /* Centrer la modale sur l'écran */
     }
+
     .container {
         flex-direction: row; /* Reste en ligne pour les grands écrans */
         max-width: 1200px; /* Limite la largeur de la fenêtre principale */
     }
+
     .form-container, .demande-container {
         margin: 0 20px;
     }
