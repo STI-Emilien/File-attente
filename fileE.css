@@ -11,17 +11,21 @@
     border: 2px solid black;
     border-radius: 10px;
     width: 100%;
-    max-width: 1000px; /* Largeur maximale */
+    height: auto;
+    max-width: 1000px;
     margin: auto;
     box-sizing: border-box;
 }
 
-/* Tableau des demandes */
+/* Container du tableau pour gérer la barre de défilement */
 #demande-table-container {
     width: 100%;
-    overflow-x: auto; /* Ajoute une barre de défilement horizontale si nécessaire */
+    max-height: 350px; /* Limite la hauteur du tableau */
+    overflow-y: auto; /* Ajoute une barre de défilement verticale si nécessaire */
+    overflow-x: hidden; /* Empêche le défilement horizontal */
 }
 
+/* Tableau des demandes */
 #demande-table {
     width: 100%; /* Le tableau prend toute la largeur disponible */
     border-collapse: collapse;
@@ -199,4 +203,15 @@
     #demande-table-container {
         overflow-x: hidden; /* Empêche le défilement horizontal dans le tableau */
     }
+
+    /* Ajouter une barre de défilement verticale dès la 2ème demande */
+    .demande-container {
+        max-height: 350px;
+        overflow-y: auto;
+    }
+    #client-container {
+       max-height: 510px;
+       overflow-y: auto; 
+    }
+    
 }
