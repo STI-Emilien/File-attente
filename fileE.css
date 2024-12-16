@@ -30,11 +30,20 @@
     border: 1px solid #979494;
     padding: 12px;
     text-align: center;
+    box-sizing: border-box; /* Assure que le padding n'affecte pas la largeur */
 }
 
 #demande-table th {
     background-color: #f4f4f4;
     font-weight: bold;
+}
+
+/* Colonne Actions - Pour aligner le bouton */
+#demande-table .actions-column {
+    width: 100px; /* Taille fixe pour la colonne Actions */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #welcome-container {
