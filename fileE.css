@@ -11,21 +11,22 @@
     border: 2px solid black;
     border-radius: 10px;
     width: auto;
-    max-width: 800px;
+    max-width: 1000px; /* Changer la largeur maximale pour les écrans plus larges */
     margin: auto;
 }
 
 #demande-table {
-    max-width: 500px;
-    width: 100%;
+    width: 100%; /* Largeur complète pour éviter un défilement horizontal */
     border-collapse: collapse;
     margin-top: 20px;
+    table-layout: fixed; /* Assure que toutes les colonnes aient une largeur égale */
 }
 
 #demande-table th, #demande-table td {
     border: 1px solid #979494;
-    padding: 8px;
+    padding: 12px; /* Un peu plus d'espacement pour améliorer la lisibilité */
     text-align: center;
+    word-wrap: break-word; /* Empêche le texte de déborder */
 }
 
 #demande-table th {
@@ -42,6 +43,7 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
+    flex-wrap: wrap; /* Permet de basculer en colonne sur petits écrans */
 }
 
 .form-container, .demande-container {
@@ -51,8 +53,9 @@
     padding: 20px;
     flex: 1;
     margin: 0 10px;
-    max-height: 300px;
+    max-height: 350px;
     overflow-y: auto;
+    box-sizing: border-box;
 }
 
 #demande-liste {
@@ -73,6 +76,11 @@
 #logout-client {
     margin-top: 20px;
     background-color: #f44336;
+    padding: 10px;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 #logout-client:hover {
@@ -127,5 +135,20 @@
     #logout-client {
         margin-top: 10px;
         font-size: 14px;
+    }
+}
+
+/* Pour éviter le défilement horizontal, ajuster les conteneurs */
+@media (min-width: 1200px) {
+    #demande-table {
+        max-width: 100%; /* S'assure que la table occupe toute la largeur sans dépasser */
+        width: 100%;
+    }
+    .container {
+        flex-direction: row; /* Reste en ligne pour les grands écrans */
+        max-width: 1200px; /* Limite la largeur de la fenêtre principale */
+    }
+    .form-container, .demande-container {
+        margin: 0 20px;
     }
 }
