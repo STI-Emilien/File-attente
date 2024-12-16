@@ -106,7 +106,7 @@
 
         // Référence à la collection des demandes triées par timestamp
         const demandesRef = collection(db, "demandes");
-        const sortedDemandesRef = query(demandesRef, orderBy("timestamp", "desc"));
+        const sortedDemandesRef = query(demandesRef, orderBy("timestamp", "asc"));
 
         // Sélectionner l'élément du tableau
         const tableau = document.getElementById("demande-list");
