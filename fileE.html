@@ -132,52 +132,55 @@
                 // Affichage des demandes
                 const demandeTableBody = document.getElementById('demande-table').querySelector('tbody');
                 const demandesRef = collection(db, 'demandes');
-                const demandesQuery = query(demandesRef, orderBy("timestamp", "asc"));
+                const demandesQuery = query(demandesRef, orderBy("timestamp", "desc"));
 
     
                 onSnapshot(demandesQuery, (snapshot) => {
-                    demandeTableBody.innerHTML = '';
-                    let id = 1;
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const row = document.createElement('tr');
-    
-                        const idCell = document.createElement('td');
-                        idCell.textContent = id++;
-                        row.appendChild(idCell);
-    
-                        const nameCell = document.createElement('td');
-                        nameCell.textContent = data.nom;
-                        row.appendChild(nameCell);
-    
-                        const profCell = document.createElement('td');
-                        profCell.textContent = data.professeur;
-                        row.appendChild(profCell);
-    
-                        const timeCell = document.createElement('td');
-                        const requestTime = data.timestamp ? new Date(data.timestamp.toMillis()) : new Date();
-                        timeCell.textContent = requestTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                        row.appendChild(timeCell);
-    
-                        const actionCell = document.createElement('td');
-                        if (data.nom === currentUser) {
-                            const deleteButton = document.createElement('button');
-                            deleteButton.textContent = 'Supprimer';
-                            deleteButton.addEventListener('click', async () => {
-                                try {
-                                    await deleteDoc(doc(db, 'demandes', doc.id));
-                                    console.log("Demande supprimée :", doc.id);
-                                } catch (err) {
-                                    console.error("Erreur lors de la suppression :", err);
-                                }
-                            });
-                            actionCell.appendChild(deleteButton);
-                        }
-                        row.appendChild(actionCell);
-    
-                        demandeTableBody.appendChild(row);
-                    });
-                });
+    demandeTableBody.innerHTML = '';  // Réinitialiser la table
+    let id = 1;
+    snapshot.forEach((doc) => {
+        const data = doc.data(); // Assurez-vous que 'data' est initialisé ici
+        const row = document.createElement('tr');
+
+        const idCell = document.createElement('td');
+        idCell.textContent = id++;
+        row.appendChild(idCell);
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = data.nom;
+        row.appendChild(nameCell);
+
+        const profCell = document.createElement('td');
+        profCell.textContent = data.professeur;
+        row.appendChild(profCell);
+
+        const timeCell = document.createElement('td');
+        const requestTime = data.timestamp ? new Date(data.timestamp.toMillis()) : new Date();
+        timeCell.textContent = requestTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        row.appendChild(timeCell);
+
+        const actionCell = document.createElement('td');
+        if (data.nom === currentUser) {
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Supprimer';
+            deleteButton.addEventListener('click', async () => {
+                try {
+                    const docRef = doc(db, 'demandes', doc.id); // Référence du document à supprimer
+                    await deleteDoc(docRef); // Supprimer le document
+                    console.log("Demande supprimée :", doc.id); // Log pour vérification
+                } catch (err) {
+                    console.error("Erreur lors de la suppression :", err);
+                    alert("Erreur lors de la suppression de la demande.");
+                }
+            });
+            actionCell.appendChild(deleteButton);
+        }
+        row.appendChild(actionCell);
+
+        demandeTableBody.appendChild(row);
+    });
+});
+
             } else {
                 window.location.href = 'connexion.html';
             }
@@ -208,6 +211,8 @@ if (data.nom === currentUser) {  // Vérifier si c'est la demande de l'utilisate
     actionCell.appendChild(deleteButton);
 }
 row.appendChild(actionCell);
+
+
 
     </script>
 </body>
