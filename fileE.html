@@ -132,7 +132,7 @@
                 // Affichage des demandes
                 const demandeTableBody = document.getElementById('demande-table').querySelector('tbody');
                 const demandesRef = collection(db, 'demandes');
-                const demandesQuery = query(demandesRef, orderBy("timestamp", "desc"));
+                const demandesQuery = query(demandesRef, orderBy("timestamp", "asc"));
 
     
                 onSnapshot(demandesQuery, (snapshot) => {
