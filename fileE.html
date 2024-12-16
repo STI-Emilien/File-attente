@@ -3,92 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File d'attente - Administration</title>
+    <title>File d'attente STI2D</title>
     <link rel="stylesheet" href="base.css">
-    <link rel="stylesheet" href="fileA.css">
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <link rel="stylesheet" href="fileE.css">
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js"></script>
+    <style>
+        body {
+            background-image: url(Buisson.jpg);
+        }
+    </style>
 </head>
-<style>
-    body {
-        background-image: url('Buisson.jpg');
-        background-size: cover;
-        background-position: center;
-        font-family: Arial, sans-serif;
-    }
-    #admin-container {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 800px;
-        margin: auto;
-        margin-top: 50px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    th, td {
-        padding: 10px;
-        text-align: center;
-        border-bottom: 1px solid #ddd;
-    }
-    th {
-        background-color: #f4f4f4;
-    }
-    button {
-        padding: 10px 20px;
-        background-color: #007BFF;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    button:hover {
-        background-color: #0056b3;
-    }
-</style>
 <body>
-    <div id="admin-container">
-        <h1>Gestion des demandes</h1>
-        
-        <!-- Bouton pour vider la file d'attente -->
-        <button id="clear-queue-btn">Vider la file d'attente</button>
-
-        <table id="demande-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nom de l'élève</th>
-                    <th>Professeur</th>
-                    <th>Heure</th>
-                    <th>Supprimer</th>
-                </tr>
-            </thead>
-            <tbody id="demande-list">
-                <!-- Les demandes seront ajoutées ici dynamiquement -->
-            </tbody>
-        </table>
-        <button id="logout-admin">Se déconnecter</button>
+    <div id="client-container" class="hidden">
+        <div id="welcome-container">
+            <h1>Bienvenue, <span id="nom-client"></span></h1>
+        </div>
+        <div class="container">
+            <div class="form-container">
+                <form method="post" id="ticket-form">
+                    <label for="professeur">Votre nom :</label>
+                    <input type="text" id="student-name" name="nom" disabled>
+                    <label for="professeur">Choisir un professeur :</label>
+                    <select id="professeur" name="prof" required>
+                        <option value="Mr Fouques">Mr Fouques</option>
+                        <option value="Mr Metay">Mr Metay</option>
+                        <option value="Mr Fosset">Mr Fosset</option>
+                        <option value="Mr Flandin">Mr Flandin</option>
+                        <option value="N'importe qui">N'importe qui</option>
+                    </select>
+                    <button type="submit" id="submit">Envoyer la demande</button>
+                </form>
+                <div id="anti-spam-message" class="hidden" style="color: red; margin-top: 10px;">
+                    Vous devez attendre 30 secondes avant de soumettre une nouvelle demande.
+                </div>
+            </div>
+            
+            <div class="demande-container">
+                <h2>Demandes de tickets</h2>
+                <table id="demande-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom de l'élève</th>
+                            <th>Professeur</th>
+                            <th>Heure</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Les demandes sont ajoutées ici -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <button id="logout-client">Se déconnecter</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            query, 
-            orderBy, 
-            onSnapshot, 
-            deleteDoc, 
-            doc, 
-            getDocs, 
-            writeBatch 
-        } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
-
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+    
         // Configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBaFwA2kJM8CvlzBBkeCkq1CdlYclcxNZ0",
@@ -98,100 +75,119 @@
             messagingSenderId: "861290828360",
             appId: "1:861290828360:web:749ffe7565bd95db273e7d"
         };
-
-        // Initialisation Firebase
+    
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+    
+        let lastSubmissionTime = 0;
+        let currentUser = null;
 
-        // Référence à la collection des demandes triées par timestamp
-        const demandesRef = collection(db, "demandes");
-        const sortedDemandesRef = query(demandesRef, orderBy("timestamp", "asc"));
-
-        // Sélectionner l'élément du tableau
-        const tableau = document.getElementById("demande-list");
-
-        // Fonction pour afficher les demandes dans le tableau
-        onSnapshot(sortedDemandesRef, (snapshot) => {
-            tableau.innerHTML = ""; // Réinitialise le tableau
-            let index = 1; // Utilisé pour afficher un ordre séquentiel
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-
-                // Vérification si les données sont présentes
-                const nom = data.nom || "Nom inconnu";
-                const prof = data.professeur || "Professeur inconnu";
-                
-                // Formatage du timestamp
-                let heure = "Heure inconnue";
-                if (data.timestamp) {
-                    const timestamp = data.timestamp.seconds * 1000; // Convertir en millisecondes
-                    const dateObj = new Date(timestamp);
-                    const hours = dateObj.getHours().toString().padStart(2, '0'); // Format de l'heure
-                    const minutes = dateObj.getMinutes().toString().padStart(2, '0'); // Format des minutes
-                    heure = `${hours}:${minutes}`; // Affichage de l'heure
+        // Authentification utilisateur
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                const userEmail = user.email;
+    
+                if (!userEmail.endsWith('@lyc-buisson.com')) {
+                    alert('Vous devez utiliser une adresse email valide @lyc-buisson.com');
+                    auth.signOut();
+                    window.location.href = 'connexion.html';
+                    return;
                 }
-
-                // Crée une ligne dans le tableau
-                const row = document.createElement("tr");
-
-                row.innerHTML = `
-                    <td>${index++}</td> <!-- Affiche l'ordre -->
-                    <td>${nom}</td>
-                    <td>${prof}</td>
-                    <td>${heure}</td>
-                    <td><button class="delete-btn" data-id="${doc.id}">-</button></td>
-                `;
-
-                tableau.appendChild(row);
-            });
-
-            // Attacher un gestionnaire d'événements aux boutons de suppression
-            attachDeleteEventListeners();
-        });
-
-        // Fonction pour attacher un gestionnaire d'événements de suppression aux boutons
-        function attachDeleteEventListeners() {
-            const deleteButtons = document.querySelectorAll('.delete-btn');
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    const id = e.target.getAttribute('data-id');
+    
+                const [firstName, lastName] = userEmail.split('@')[0].split('.');
+                const formattedName = `${firstName.charAt(0).toUpperCase() + firstName.slice(1)}.${lastName.charAt(0).toUpperCase()}`;
+                currentUser = formattedName;
+    
+                document.getElementById('nom-client').textContent = formattedName;
+                document.getElementById('student-name').value = formattedName;
+                document.getElementById('client-container').classList.remove('hidden');
+    
+                // Formulaire d'envoi de ticket
+                const ticketForm = document.getElementById('ticket-form');
+                ticketForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+    
+                    const currentTime = Date.now();
+                    if (currentTime - lastSubmissionTime < 30000) {
+                        document.getElementById('anti-spam-message').classList.remove('hidden');
+                        return;
+                    }
+    
+                    document.getElementById('anti-spam-message').classList.add('hidden');
+    
+                    const prof = document.getElementById('professeur').value;
                     try {
-                        // Supprimer la demande de Firestore
-                        await deleteDoc(doc(db, "demandes", id));
-                    } catch (error) {
-                        console.error("Erreur lors de la suppression :", error);
-                        alert("Une erreur est survenue lors de la suppression.");
+                        await addDoc(collection(db, 'demandes'), {
+                            nom: formattedName,
+                            professeur: prof,
+                            timestamp: serverTimestamp()
+                        });
+                        lastSubmissionTime = currentTime;
+                    } catch (err) {
+                        console.error("Erreur lors de l'envoi de la demande :", err);
                     }
                 });
-            });
-        }
+    
+                // Affichage des demandes
+                const demandeTableBody = document.getElementById('demande-table').querySelector('tbody');
+                const demandesRef = collection(db, 'demandes');
+                const demandesQuery = query(demandesRef, orderBy("timestamp", "desc"));
 
-        // Fonction pour vider la file d'attente
-        document.getElementById('clear-queue-btn').addEventListener('click', async () => {
-            const snapshot = await getDocs(demandesRef); // Récupérer toutes les demandes
-            if (snapshot.empty) {
-                alert("Aucune demande à supprimer.");
-                return;
-            }
-            const batch = writeBatch(db); // Utiliser un batch pour supprimer plusieurs documents
-            snapshot.forEach((doc) => {
-                batch.delete(doc.ref); // Ajouter la suppression du document au batch
-            });
-            try {
-                await batch.commit(); // Committer le batch pour supprimer tous les documents
-            } catch (error) {
-                console.error("Erreur lors de la suppression de la file d'attente :", error);
-                alert("Une erreur est survenue lors de la suppression.");
+    
+                onSnapshot(demandesQuery, (snapshot) => {
+                    demandeTableBody.innerHTML = '';
+                    let id = 1;
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const row = document.createElement('tr');
+    
+                        const idCell = document.createElement('td');
+                        idCell.textContent = id++;
+                        row.appendChild(idCell);
+    
+                        const nameCell = document.createElement('td');
+                        nameCell.textContent = data.nom;
+                        row.appendChild(nameCell);
+    
+                        const profCell = document.createElement('td');
+                        profCell.textContent = data.professeur;
+                        row.appendChild(profCell);
+    
+                        const timeCell = document.createElement('td');
+                        const requestTime = data.timestamp ? new Date(data.timestamp.toMillis()) : new Date();
+                        timeCell.textContent = requestTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                        row.appendChild(timeCell);
+    
+                        const actionCell = document.createElement('td');
+                        if (data.nom === currentUser) {
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Supprimer';
+                            deleteButton.addEventListener('click', async () => {
+                                try {
+                                    await deleteDoc(doc(db, 'demandes', doc.id));
+                                    console.log("Demande supprimée :", doc.id);
+                                } catch (err) {
+                                    console.error("Erreur lors de la suppression :", err);
+                                }
+                            });
+                            actionCell.appendChild(deleteButton);
+                        }
+                        row.appendChild(actionCell);
+    
+                        demandeTableBody.appendChild(row);
+                    });
+                });
+            } else {
+                window.location.href = 'connexion.html';
             }
         });
-
-        // Gestion de la déconnexion
-        document.getElementById("logout-admin").addEventListener("click", () => {
+    
+        // Déconnexion utilisateur
+        const logoutButton = document.getElementById('logout-client');
+        logoutButton.addEventListener('click', () => {
             auth.signOut().then(() => {
-                window.location.href = 'connexion.html'; // Redirige vers la page de connexion après déconnexion
-            }).catch((error) => {
-                console.error("Erreur lors de la déconnexion :", error);
+                window.location.href = 'connexion.html';
             });
         });
 
@@ -216,4 +212,3 @@ row.appendChild(actionCell);
     </script>
 </body>
 </html>
-
