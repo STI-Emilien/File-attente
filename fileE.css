@@ -11,7 +11,7 @@
     border: 2px solid black;
     border-radius: 10px;
     width: 100%;
-    max-width: 1000px; /* Largeur maximale pour les grands écrans */
+    max-width: 1200px; /* Largeur maximale pour les grands écrans */
     margin: auto;
     box-sizing: border-box;
 }
