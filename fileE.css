@@ -21,7 +21,7 @@
     width: 100%; /* Permet de remplir toute la largeur du conteneur */
     border-collapse: collapse;
     margin-top: 20px;
-    table-layout: fixed; /* Pour que les colonnes soient bien réparties */
+    table-layout: fixed; /* Pour que les colonnes aient une largeur équivalente */
     word-wrap: break-word; /* Empêche le texte de déborder */
 }
 
@@ -30,7 +30,7 @@
     border: 1px solid #979494;
     padding: 12px;
     text-align: center;
-    box-sizing: border-box; /* Assure que le padding n'affecte pas la largeur */
+    box-sizing: border-box; /* Assure que le padding est pris en compte dans la taille totale de la cellule */
 }
 
 #demande-table th {
@@ -38,12 +38,18 @@
     font-weight: bold;
 }
 
-/* Colonne Actions - Pour aligner le bouton */
-#demande-table .actions-column {
-    width: 100px; /* Taille fixe pour la colonne Actions */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+#demande-table td button {
+    padding: 8px 12px; /* Ajuste la taille du bouton pour qu'il soit bien contenu dans la cellule */
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    background-color: #4CAF50; /* Couleur du bouton */
+    color: white;
+    border-radius: 5px;
+}
+
+#demande-table td button:hover {
+    background-color: #45a049;
 }
 
 #welcome-container {
